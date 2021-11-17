@@ -1,9 +1,33 @@
-sudo k3s server &
+## Build and install LXD from source - 
+
+- Download LXD from `https://linuxcontainers.org/lxd/downloads/` 
+- Example - `wget https://linuxcontainers.org/downloads/lxd/lxd-4.20.tar.gz` 
+- Extract the tar - `tar zxvf lxd-4.20.tar.gz`
+- Get into folder - `cd lxd-4.20`
+- Add non-free debian-11 repos from here - `https://wiki.debian.org/SourcesList`
+```
+deb http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+deb-src http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+```
+- Install components for build - 
+```
+sudo apt-get install autoconf libtool liblz4-dev sqlite3 libsqlite3-dev
+```
+
+## Install LXC - 
+
+- sudo apt-get install lxc
+
+# k3s commands
+- curl -sfL https://get.k3s.io | sh -
+
+
+
 # Kubeconfig is written to /etc/rancher/k3s/k3s.yaml
 sudo k3s kubectl get node
 
 
-Token - K10f8474fb1a0f04751444f2ef8f8f570ce1fb2ed85ec86070d55d1c0c67cec9a20::server:bd20737640ee5c19aaca77ef4703a6df
+Token - K10e40e16d96834cc6be8344db89f55fb149b6ea7f6ceac76f6e2b4b851eef28f05::server:c7832d09227c98127d79cb887cc6a886
 
 # On a different node run the below. NODE_TOKEN comes from /var/lib/rancher/k3s/server/node-token
 # on your server
@@ -33,22 +57,25 @@ https://github.com/k3s-io/k3s/issues/3700
 https://github.com/corneliusweig/kubernetes-lxd/blob/master/README-k3s.md
 
 
-# k3s commands
-- curl -sfL https://get.k3s.io | sh -
 
-# commands - 
+
+# commands agent - 
 
 - export K3S_NODE_NAME=k3s-worker
-- export K3S_TOKEN=K10f8474fb1a0f04751444f2ef8f8f570ce1fb2ed85ec86070d55d1c0c67cec9a20::server:bd20737640ee5c19aaca77ef4703a6df
+- export K3S_TOKEN=K10e40e16d96834cc6be8344db89f55fb149b6ea7f6ceac76f6e2b4b851eef28f05::server:c7832d09227c98127d79cb887cc6a886
 - export K3S_URL=https://10.71.54.47:6443
 
-- lxc launch images:debian/11/amd64 k3s-master  --profile k8s
+# k3s commands server - 
+- lxc launch images:debian/10/amd64 k3s-master  --profile k8s
+- lxc config show k3s-master
 - lxc exec k3s-master bash
-- apt install curl
+- apt install curl containerd kmod -y
 - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --flannel-backend=vxlan --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh -
 - lxc stop k3s-master
 - lxc delete k3s-master
 - lxc profile edit k8s
+- lxc file pull k3s-master/etc/rancher/k3s/k3s.yaml ~/.kube/config
+- sed -i 's:127.0.0.1:k3s-master:;s:default:k3s-lxc:g' ~/.kube/config
 - Uninstall k3s - /usr/local/bin/k3s-uninstall.sh
 
 
@@ -82,8 +109,11 @@ used_by: []
 ```
 config:
   raw.lxc: |-
+    linux.kernel_modules= ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,xt_conntrack
     lxc.autodev=1
     lxc.mount.entry = /dev/kmsg dev/kmsg none defaults,bind,create=file
+    lxc.apparmor.profile=unconfined
+    security.nesting=true
 description: Kubernetes LXD profile
 devices:
   eth0:
@@ -111,7 +141,12 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable-network-policy --clus
 
 
 
-level=info msg="To join node to cluster: k3s agent -s https://10.71.54.81:6443 -t ${NODE_TOKEN}"
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock --cluster-cidr 10.45.0.0/16" sh -
 
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh -
+
+# Calico Setup - 
+
+- SEE - https://coder.com/docs/coder/latest/setup/kubernetes/k3s
+
+- curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.45.0.0/16 --disable-network-policy --disable=traefik" sh -
