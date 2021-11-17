@@ -14,9 +14,63 @@ deb-src http://deb.debian.org/debian-security/ bullseye-security main contrib no
 sudo apt-get install autoconf libtool liblz4-dev sqlite3 libsqlite3-dev
 ```
 
-## Install LXC - 
+## Add user to sudoers group (debian) -
+
+```
+#usermod -aG sudo $(whoami)
+```
+
+## Add debian sources list -
+```
+# add to /etc/apt/sources.list from -
+
+- https://wiki.debian.org/SourcesList 
+
+```
+
+### - As example see section -
+```
+ 
+
+deb http://deb.debian.org/debian bullseye main contrib non-free
+deb-src http://deb.debian.org/debian bullseye main contrib non-free
+
+deb http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+deb-src http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+
+deb http://deb.debian.org/debian bullseye-updates main contrib non-free
+deb-src http://deb.debian.org/debian bullseye-updates main contrib non-free
+
+```
+
+### Install snap on debian -
+
+```
+sudo snap install snapd
+
+sudo snap install core
+
+ - reboot ( important ) 
+```
+
+
+## Install LXC (ubuntu)- 
 
 - sudo apt-get install lxc
+
+## Install LXC on Debian - 
+
+- sudo snap install lxc
+
+## Enable lxd daemon - 
+
+- sudo systemctl enable snap.lxd.daemon
+
+### add user to group
+
+- sudo adduser $(whoami) lxd
+- REBOOT completely OR execute commmand - loginctl terminate-user $(whoami)
+- The above command is to take effect for the change of assignment of the user to new group.
 
 # k3s commands
 - curl -sfL https://get.k3s.io | sh -
