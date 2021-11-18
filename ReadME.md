@@ -72,8 +72,7 @@ sudo snap install core
 - REBOOT completely OR execute commmand - loginctl terminate-user $(whoami)
 - The above command is to take effect for the change of assignment of the user to new group.
 
-# k3s commands
-- curl -sfL https://get.k3s.io | sh -
+
 
 
 
@@ -119,12 +118,30 @@ https://github.com/corneliusweig/kubernetes-lxd/blob/master/README-k3s.md
 - export K3S_TOKEN=K10e40e16d96834cc6be8344db89f55fb149b6ea7f6ceac76f6e2b4b851eef28f05::server:c7832d09227c98127d79cb887cc6a886
 - export K3S_URL=https://10.71.54.47:6443
 
-# k3s commands server - 
+# k3s commands
+- curl -sfL https://get.k3s.io | sh -
+
+### LXC Commands on HOST (alpine)- 
+- apk add conntrack-tools 
+- lxc profile copy default k8s 
+- lxc profile edit k8s ( add the config below mentioned )
+- lxc storage create lxc-data dir source=/data/lxd
+- chgrp lxd /data/lxd
+- chmod g+rwx /data/lxd
 - lxc launch images:debian/10/amd64 k3s-master  --profile k8s
-- lxc config show k3s-master
+- lxc config show k3s-master --expanded
 - lxc exec k3s-master bash
-- apt install curl containerd kmod -y
-- curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --flannel-backend=vxlan --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh -
+
+### Commands on Guest - 
+- apt install curl kmod containerd -y
+- sudo hostnamectl set-hostname k3s-master
+- export K3S_NODE_NAME=k3s-master
+<!-- - export INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --snapshotter=native --node-external-ip 10.204.153.82 --kubelet-arg=cgroup-driver=systemd" -->
+- export INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --snapshotter=native --node-external-ip 10.204.153.82"
+- curl -sfL https://get.k3s.io | sh -
+<!-- - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --flannel-backend=vxlan --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh - -->
+
+### Stop LXC container - 
 - lxc stop k3s-master
 - lxc delete k3s-master
 - lxc profile edit k8s
@@ -137,33 +154,15 @@ https://github.com/corneliusweig/kubernetes-lxd/blob/master/README-k3s.md
 
 # LXC Profile
 
-```
-config:
-  linux.kernel_modules: ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,xt_conntrack
-  raw.lxc: lxc.mount.auto=proc:rw sys:rw
-  security.nesting: "true"
-  security.privileged: "true"
-description: Default LXD profile
-devices:
-  eth0:
-    name: eth0
-    network: lxdbr0
-    type: nic
-  root:
-    path: /
-    pool: btrfs-storage
-    type: disk
-name: k8s
-used_by: []
-
-```
-
-
 
 ```
 config:
   raw.lxc: |-
-    linux.kernel_modules= ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,xt_conntrack
+    lxc.cgroup.relative = 1
+    lxc.cgroup.devices.allow =
+    lxc.cgroup.devices.deny =
+    lxc.mount.auto = proc:mixed sys:mixed cgroup:mixed:force
+    linux.kernel_modules=ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,xt_conntrack
     lxc.autodev=1
     lxc.mount.entry = /dev/kmsg dev/kmsg none defaults,bind,create=file
     lxc.apparmor.profile=unconfined
@@ -176,7 +175,7 @@ devices:
     type: nic
   root:
     path: /
-    pool: default 
+    pool: lxc-data 
     type: disk
 name: k8s
 
@@ -191,16 +190,16 @@ https://wiki.kobol.io/helios64/software/zfs/install-zfs/
 
 
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable-network-policy --cluster-init  --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh -
+<!-- curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable-network-policy --cluster-init  --container-runtime-endpoint unix:///run/containerd/containerd.sock" sh - -->
 
 
 
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock --cluster-cidr 10.45.0.0/16" sh -
+<!-- curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--cluster-init --snapshotter=zfs --container-runtime-endpoint unix:///run/containerd/containerd.sock --cluster-cidr 10.45.0.0/16" sh - -->
 
 
 
-# Calico Setup - 
+<!-- # Calico Setup -  -->
 
-- SEE - https://coder.com/docs/coder/latest/setup/kubernetes/k3s
+<!-- - SEE - https://coder.com/docs/coder/latest/setup/kubernetes/k3s -->
 
-- curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.45.0.0/16 --disable-network-policy --disable=traefik" sh -
+<!-- - curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="--flannel-backend=none --cluster-cidr=10.45.0.0/16 --disable-network-policy --disable=traefik" sh - -->
