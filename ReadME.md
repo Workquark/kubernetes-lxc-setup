@@ -11,7 +11,7 @@ These commands would prepare the host and create the container to be launched on
 ```
 - apk add conntrack-tools 
 - lxc profile copy default k8s 
-- lxc profile edit k8s ( add the config below mentioned in section 1.2)
+- lxc profile edit k8s ( add the config below mentioned in section)
 - lxc storage create lxc-data dir source=/data/lxd
 - chgrp lxd /data/lxd ( assign the folder to lxd group)
 - chmod g+rwx /data/lxd ( give the group permission to /data/lxd)
