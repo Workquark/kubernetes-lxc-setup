@@ -21,6 +21,26 @@ These commands would prepare the host and create the container to be launched on
 
 ```
 
+### Notes: LXC Host should be configured
+
+```
+On Alpine, here's a list of package add-ons applied to the host. This may be more than what's strictly necessary.
+
+sudo apk add acl alpine-base alpine-baselayout alpine-conf alpine-keys apk-tools argon2-libs attr blkid brotli-libs busybox busybox-initscripts busybox-suid ca-certificates ca-certificates-bundle cfdisk cgmanager cgmanager-openrc chrony chrony-openrc conntrack-tools conntrack-tools-openrc cryptsetup-libs curl dbus dbus-libs dbus-openrc device-mapper-libs dnsmasq dqlite e2fsprogs e2fsprogs-extra e2fsprogs-libs eudev-libs expat findmnt findutils flock fts fuse fuse-common fuse-openrc gmp gnutls hexdump ifupdown-ng ifupdown-ng-iproute2 ip6tables ip6tables-openrc iproute2 iproute2-minimal iproute2-ss iproute2-tc iptables iptables-openrc json-c kmod kmod-libs kmod-openrc lddtree libacl libattr libblkid libbsd libbz2 libc-utils libcap libcap-ng libcom_err libcrypto1.1 libcurl libeconf libedit libelf libevent libfdisk libffi libgcc libintl libmd libmnl libmount libnetfilter_conntrack libnetfilter_cthelper libnetfilter_cttimeout libnetfilter_queue libnfnetlink libnftnl libnih libproc libretls libseccomp libsmartcols libssl1.1 libstdc++ libtasn1 libunistring libuuid libuv linux-firmware linux-lts linux-pam logger lsblk lua-lunix lua-optarg lua5.1 lua5.1-libs lua5.1-lunix lua5.1-optarg lxc lxc-libs lxc-openrc lxcfs lxcfs-openrc lxd lxd-openrc lz4-libs lzo mcookie mkinitfs mtools musl musl-utils nano ncurses-libs ncurses-terminfo-base netcat-openbsd nettle nghttp2-libs nvme-cli openrc openssh openssh-client-common openssh-client-default openssh-keygen openssh-server openssh-server-common openssh-sftp-server p11-kit partx popt procps psmisc raft rsync rsync-openrc runuser scanelf setpriv sfdisk shadow shadow-uidmap sqlite-libs squashfs-tools ssl_client sudo syslinux tar tiny-ec2-bootstrap tmux tzdata uidmapshift util-linux util-linux-misc util-linux-openrc uuidgen wipefs xz xz-libs zlib zstd zstd-libs
+
+The kernel used is linux-lts
+
+The changes to /boot/extlinux.conf look like:
+
+APPEND root=LABEL=/ modules=sd-mod,usb-storage,ext4,nvme,ena console=ttyS0,115200n8 nvme_core.io_timeout=4294967295 cgroup_enable=cpuset,memory cgroup_memory=1 swapaccount=1 systemd.unified_cgroup_hierarchy=1 elevator=noop cgroup_cpuset=1
+
+(The part after the io_timeout is the part that was added).
+
+There's a chance that using some later packages helped (when I did a big upgrade, this was with the edge/testing repository enabled. Will need to see how well it works with stable).
+
+/etc/modules contains: af_packet ipv6 ip_tables ip6_tables netlink_diag nf_nat overlay xt_conntrack ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh nf_conntrack br_netfilter tun
+```
+
 ### LXC Profile to be added to command - 
 ```
 lxc profile edit k8s 
