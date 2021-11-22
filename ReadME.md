@@ -7,44 +7,34 @@ These commands would prepare the host and create the container to be launched on
 </p>
 
 
-
+### Add the kernel tools -
 ```
 - apk add conntrack-tools 
-- lxc profile copy default k8s 
-- lxc profile edit k8s ( add the config below mentioned in section)
-- lxc storage create lxc-data dir source=/data/lxd
-- chgrp lxd /data/lxd ( assign the folder to lxd group)
-- chmod g+rwx /data/lxd ( give the group permission to /data/lxd)
-- lxc launch images:debian/10/amd64 k3s-master  --profile k8s ( launch the k3s-master with the `k8s` LXC config)
-- lxc config show k3s-master --expanded ( optional to see the lxc configuration for k3s-master)
-- lxc exec k3s-master bash ( exec into the k3s-master lxc container )
+
 
 ```
 
-### Notes: LXC Host should be configured
+### Prepare the storage for LXD storage - 
 
 ```
-On Alpine, here's a list of package add-ons applied to the host. This may be more than what's strictly necessary.
-
-sudo apk add acl alpine-base alpine-baselayout alpine-conf alpine-keys apk-tools argon2-libs attr blkid brotli-libs busybox busybox-initscripts busybox-suid ca-certificates ca-certificates-bundle cfdisk cgmanager cgmanager-openrc chrony chrony-openrc conntrack-tools conntrack-tools-openrc cryptsetup-libs curl dbus dbus-libs dbus-openrc device-mapper-libs dnsmasq dqlite e2fsprogs e2fsprogs-extra e2fsprogs-libs eudev-libs expat findmnt findutils flock fts fuse fuse-common fuse-openrc gmp gnutls hexdump ifupdown-ng ifupdown-ng-iproute2 ip6tables ip6tables-openrc iproute2 iproute2-minimal iproute2-ss iproute2-tc iptables iptables-openrc json-c kmod kmod-libs kmod-openrc lddtree libacl libattr libblkid libbsd libbz2 libc-utils libcap libcap-ng libcom_err libcrypto1.1 libcurl libeconf libedit libelf libevent libfdisk libffi libgcc libintl libmd libmnl libmount libnetfilter_conntrack libnetfilter_cthelper libnetfilter_cttimeout libnetfilter_queue libnfnetlink libnftnl libnih libproc libretls libseccomp libsmartcols libssl1.1 libstdc++ libtasn1 libunistring libuuid libuv linux-firmware linux-lts linux-pam logger lsblk lua-lunix lua-optarg lua5.1 lua5.1-libs lua5.1-lunix lua5.1-optarg lxc lxc-libs lxc-openrc lxcfs lxcfs-openrc lxd lxd-openrc lz4-libs lzo mcookie mkinitfs mtools musl musl-utils nano ncurses-libs ncurses-terminfo-base netcat-openbsd nettle nghttp2-libs nvme-cli openrc openssh openssh-client-common openssh-client-default openssh-keygen openssh-server openssh-server-common openssh-sftp-server p11-kit partx popt procps psmisc raft rsync rsync-openrc runuser scanelf setpriv sfdisk shadow shadow-uidmap sqlite-libs squashfs-tools ssl_client sudo syslinux tar tiny-ec2-bootstrap tmux tzdata uidmapshift util-linux util-linux-misc util-linux-openrc uuidgen wipefs xz xz-libs zlib zstd zstd-libs
-
-The kernel used is linux-lts
-
-The changes to /boot/extlinux.conf look like:
-
-APPEND root=LABEL=/ modules=sd-mod,usb-storage,ext4,nvme,ena console=ttyS0,115200n8 nvme_core.io_timeout=4294967295 cgroup_enable=cpuset,memory cgroup_memory=1 swapaccount=1 systemd.unified_cgroup_hierarchy=1 elevator=noop cgroup_cpuset=1
-
-(The part after the io_timeout is the part that was added).
-
-There's a chance that using some later packages helped (when I did a big upgrade, this was with the edge/testing repository enabled. Will need to see how well it works with stable).
-
-/etc/modules contains: af_packet ipv6 ip_tables ip6_tables netlink_diag nf_nat overlay xt_conntrack ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh nf_conntrack br_netfilter tun
+ sudo mkdir -p /data/lxd (make storage data folder)
+ sudo chgrp lxd /data/lxd ( assign the folder to lxd group)
+ sudo chmod g+rwx /data/lxd ( give the group permission to /data/lxd)
 ```
 
-### LXC Profile to be added to command - 
+### Create the storage edit the profile and 
 ```
-lxc profile edit k8s 
+ lxc config show k3s-master --expanded ( optional to see the lxc configuration for k3s-master)
 ```
+
+### Create and edit the profile 
+
+```
+ lxc storage create lxc-data dir source=/data/lxd
+ lxc profile copy default k8s
+ lxc profile edit k8s ( add the config below mentioned in section)
+```
+
 ### Add this config using vi tool to edited LXC profile ( k8s in this case)
 ```
 config:
@@ -72,6 +62,37 @@ name: k8s
 
 ```
 
+### Launch the container using the profile 
+```
+ lxc launch images:debian/10/amd64 k3s-master  --profile k8s ( launch the k3s-master with the `k8s` LXC config)
+```
+
+### Exec into the container bash - 
+
+```
+ lxc exec k3s-master bash ( exec into the k3s-master lxc container )
+```
+
+### Notes: LXC Host should be configured
+
+```
+On Alpine, here's a list of package add-ons applied to the host. This may be more than what's strictly necessary.
+
+sudo apk add acl alpine-base alpine-baselayout alpine-conf alpine-keys apk-tools argon2-libs attr blkid brotli-libs busybox busybox-initscripts busybox-suid ca-certificates ca-certificates-bundle cfdisk cgmanager cgmanager-openrc chrony chrony-openrc conntrack-tools conntrack-tools-openrc cryptsetup-libs curl dbus dbus-libs dbus-openrc device-mapper-libs dnsmasq dqlite e2fsprogs e2fsprogs-extra e2fsprogs-libs eudev-libs expat findmnt findutils flock fts fuse fuse-common fuse-openrc gmp gnutls hexdump ifupdown-ng ifupdown-ng-iproute2 ip6tables ip6tables-openrc iproute2 iproute2-minimal iproute2-ss iproute2-tc iptables iptables-openrc json-c kmod kmod-libs kmod-openrc lddtree libacl libattr libblkid libbsd libbz2 libc-utils libcap libcap-ng libcom_err libcrypto1.1 libcurl libeconf libedit libelf libevent libfdisk libffi libgcc libintl libmd libmnl libmount libnetfilter_conntrack libnetfilter_cthelper libnetfilter_cttimeout libnetfilter_queue libnfnetlink libnftnl libnih libproc libretls libseccomp libsmartcols libssl1.1 libstdc++ libtasn1 libunistring libuuid libuv linux-firmware linux-lts linux-pam logger lsblk lua-lunix lua-optarg lua5.1 lua5.1-libs lua5.1-lunix lua5.1-optarg lxc lxc-libs lxc-openrc lxcfs lxcfs-openrc lxd lxd-openrc lz4-libs lzo mcookie mkinitfs mtools musl musl-utils nano ncurses-libs ncurses-terminfo-base netcat-openbsd nettle nghttp2-libs nvme-cli openrc openssh openssh-client-common openssh-client-default openssh-keygen openssh-server openssh-server-common openssh-sftp-server p11-kit partx popt procps psmisc raft rsync rsync-openrc runuser scanelf setpriv sfdisk shadow shadow-uidmap sqlite-libs squashfs-tools ssl_client sudo syslinux tar tiny-ec2-bootstrap tmux tzdata uidmapshift util-linux util-linux-misc util-linux-openrc uuidgen wipefs xz xz-libs zlib zstd zstd-libs
+
+The kernel used is linux-lts
+
+The changes to /boot/extlinux.conf look like:
+
+APPEND root=LABEL=/ modules=sd-mod,usb-storage,ext4,nvme,ena console=ttyS0,115200n8 nvme_core.io_timeout=4294967295 cgroup_enable=cpuset,memory cgroup_memory=1 swapaccount=1 systemd.unified_cgroup_hierarchy=1 elevator=noop cgroup_cpuset=1
+
+(The part after the io_timeout is the part that was added).
+
+There's a chance that using some later packages helped (when I did a big upgrade, this was with the edge/testing repository enabled. Will need to see how well it works with stable).
+
+/etc/modules contains: af_packet ipv6 ip_tables ip6_tables netlink_diag nf_nat overlay xt_conntrack ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh nf_conntrack br_netfilter tun
+```
+
 <!-- - apt install curl kmod containerd -y -->
 
 <!-- - export INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --snapshotter=native --node-external-ip 10.204.153.82 --kubelet-arg=cgroup-driver=systemd" -->
@@ -94,7 +115,7 @@ lxc exec k3s-master bash
 - apt install curl kmod -y
 - sudo hostnamectl set-hostname k3s-master
 - export K3S_NODE_NAME=k3s-master
-- export INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --snapshotter=native --node-external-ip 10.204.153.164"
+- export INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --snapshotter=native --node-external-ip 10.162.97.207"
 
 ```
 
@@ -107,6 +128,12 @@ curl -sfL https://get.k3s.io | sh -
 
 ``` 
 journalctl -xeu k3s -f 
+```
+
+### Notes link /dev/kmsg for container- 
+
+```
+ln -s /dev/console /dev/kmsg
 ```
 
 # Worker Instance -
@@ -159,6 +186,7 @@ export INSTALL_K3S_EXEC="--snapshotter=native"
 ```
 curl -sfL https://get.k3s.io | sh -
 ```
+
 
 
 

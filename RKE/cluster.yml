@@ -1,0 +1,6 @@
+nodes:
+    - address: 10.57.228.107
+      user: rke
+      role:
+        - controlplane
+        - etcd
