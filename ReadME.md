@@ -13,7 +13,6 @@ These commands would prepare the host and create the container to be launched on
 https://wiki.alpinelinux.org/wiki/LXD
 ```
 
-
 ### Add the kernel tools -
 ```
 apk add conntrack-tools 
