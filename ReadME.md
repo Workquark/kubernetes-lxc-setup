@@ -7,11 +7,16 @@ These commands would prepare the host and create the container to be launched on
 </p>
 
 
+### Refer to this for installing apine on LXD 
+
+```
+https://wiki.alpinelinux.org/wiki/LXD
+```
+
+
 ### Add the kernel tools -
 ```
-- apk add conntrack-tools 
-
-
+apk add conntrack-tools 
 ```
 
 ### Prepare the storage for LXD storage - 
@@ -22,15 +27,14 @@ These commands would prepare the host and create the container to be launched on
  sudo chmod g+rwx /data/lxd ( give the group permission to /data/lxd)
 ```
 
-### Create the storage edit the profile and 
+### Create the storage underneath for lxc using /data/lxd 
 ```
- lxc config show k3s-master --expanded ( optional to see the lxc configuration for k3s-master)
+lxc storage create lxc-data dir source=/data/lxd
 ```
 
 ### Create and edit the profile 
 
 ```
- lxc storage create lxc-data dir source=/data/lxd
  lxc profile copy default k8s
  lxc profile edit k8s ( add the config below mentioned in section)
 ```
@@ -60,6 +64,11 @@ devices:
     type: disk
 name: k8s
 
+```
+
+### See the profile 
+```
+ lxc config show k3s-master --expanded ( optional to see the lxc configuration for k3s-master)
 ```
 
 ### Launch the container using the profile 
@@ -130,7 +139,7 @@ curl -sfL https://get.k3s.io | sh -
 journalctl -xeu k3s -f 
 ```
 
-### Notes link /dev/kmsg for container- 
+### Notes link /dev/kmsg for container - 
 
 ```
 ln -s /dev/console /dev/kmsg
